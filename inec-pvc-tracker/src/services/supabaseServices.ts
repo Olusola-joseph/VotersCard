@@ -129,13 +129,13 @@ export const createPVCDistribution = async (pvcData: {
 }): Promise<PVCDistribution> => {
   const insertData = {
     ...pvcData,
-    state_code: '27' as const,
-    status: 'issued' as const
+    state_code: '27',
+    status: 'issued'
   };
   
   const { data, error } = await supabase
     .from('pvc_distributions')
-    .insert(insertData)
+    .insert(insertData as any)
     .select()
     .single();
   
@@ -144,7 +144,7 @@ export const createPVCDistribution = async (pvcData: {
     throw error;
   }
   
-  return data;
+  return data as PVCDistribution;
 };
 
 export const fetchPVCDistributions = async (filters?: {
@@ -222,7 +222,7 @@ export const updatePVCDistribution = async (
   
   const { data, error } = await supabase
     .from('pvc_distributions')
-    .update(updatesData)
+    .update(updatesData as any)
     .eq('id', id)
     .select()
     .single();
@@ -232,7 +232,7 @@ export const updatePVCDistribution = async (
     throw error;
   }
   
-  return data;
+  return data as PVCDistribution;
 };
 
 export const cancelPVCDistribution = async (id: string): Promise<PVCDistribution> => {
@@ -250,11 +250,11 @@ export const fetchPVCStatsByHierarchy = async (params?: {
 }): Promise<any[]> => {
   const { data, error } = await supabase.rpc('get_pvc_stats_by_hierarchy', {
     p_state_code: params?.state_code || '27',
-    p_lga_code: params?.lga_code || null,
-    p_ward_code: params?.ward_code || null,
-    p_start_date: params?.start_date || null,
-    p_end_date: params?.end_date || null
-  });
+    p_lga_code: params?.lga_code ?? null,
+    p_ward_code: params?.ward_code ?? null,
+    p_start_date: params?.start_date ?? null,
+    p_end_date: params?.end_date ?? null
+  } as any);
   
   if (error) {
     console.error('Error fetching PVC stats:', error);
@@ -314,7 +314,7 @@ export const createUserProfile = async (profile: {
 }): Promise<Profile> => {
   const { data, error } = await supabase
     .from('profiles')
-    .insert(profile)
+    .insert(profile as any)
     .select()
     .single();
   
@@ -323,7 +323,7 @@ export const createUserProfile = async (profile: {
     throw error;
   }
   
-  return data;
+  return data as Profile;
 };
 
 export const updateUserProfile = async (
@@ -332,7 +332,7 @@ export const updateUserProfile = async (
 ): Promise<Profile> => {
   const { data, error } = await supabase
     .from('profiles')
-    .update(updates)
+    .update(updates as any)
     .eq('id', userId)
     .select()
     .single();
@@ -342,31 +342,23 @@ export const updateUserProfile = async (
     throw error;
   }
   
-  return data;
+  return data as Profile;
 };
 
 // ==================== Real-time Subscription Helpers ====================
 
 export const subscribeToRealtimeUpdates = (
   tableName: 'pvc_distributions' | 'profiles',
-  callback: (payload: any) => void,
-  filters?: Record<string, any>
+  callback: (payload: any) => void
 ) => {
-  const channel = supabase.channel(`${tableName}_realtime`);
+  const channelName = `${tableName}_realtime`;
+  const channel = supabase.channel(channelName);
   
-  let subscription = channel.from(tableName);
-  
-  if (filters) {
-    Object.entries(filters).forEach(([key, value]) => {
-      subscription = subscription.eq(key, value);
-    });
-  }
-  
-  subscription
-    .on('INSERT', callback)
-    .on('UPDATE', callback)
-    .on('DELETE', callback)
-    .subscribe();
+  channel.on(
+    'postgres_changes',
+    { event: '*', schema: 'public', table: tableName },
+    callback
+  ).subscribe();
   
   return channel;
 };
