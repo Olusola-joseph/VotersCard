@@ -251,7 +251,6 @@ export const subscribeToPVCDistributions = (
   filters?: { lga_code?: string; ward_code?: string }
 ) => {
   let channelName = 'pvc_distributions_changes';
-  let filterConfig: any = { event: '*', schema: 'public', table: 'pvc_distributions' };
   
   if (filters?.lga_code && filters?.ward_code) {
     channelName = `pvc:${filters.lga_code}:${filters.ward_code}`;
@@ -261,7 +260,11 @@ export const subscribeToPVCDistributions = (
   
   const channel = supabase.channel(channelName);
   
-  channel.on('postgres_changes', filterConfig, callback).subscribe();
+  channel.on(
+    'postgres_changes',
+    { event: '*', schema: 'public', table: 'pvc_distributions' },
+    callback
+  ).subscribe();
   
   return channel;
 };
