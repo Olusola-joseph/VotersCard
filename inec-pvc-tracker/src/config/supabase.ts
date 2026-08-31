@@ -3,17 +3,36 @@
  * Environment variables for Supabase connection
  */
 
-// IMPORTANT: Replace these with your actual Supabase credentials
-export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL';
-export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
+// Load environment variables from .env file
+const loadEnv = () => {
+  if (typeof window !== 'undefined') {
+    return {
+      VITE_SUPABASE_URL: (window as any).env?.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL,
+      VITE_SUPABASE_ANON_KEY: (window as any).env?.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY
+    };
+  }
+  return {
+    VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
+    VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY
+  };
+};
 
-// Validate configuration
-if (!SUPABASE_URL || SUPABASE_URL === 'YOUR_SUPABASE_URL') {
-  console.warn('⚠️  VITE_SUPABASE_URL is not configured. Please set it in your .env file.');
+const env = loadEnv();
+
+export const SUPABASE_URL = env.VITE_SUPABASE_URL || '';
+export const SUPABASE_ANON_KEY = env.VITE_SUPABASE_ANON_KEY || '';
+
+// Validate configuration with better error messages
+if (!SUPABASE_URL) {
+  console.error('❌ VITE_SUPABASE_URL is not configured. Please check your .env file.');
+} else {
+  console.log('✅ Supabase URL configured:', SUPABASE_URL);
 }
 
-if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
-  console.warn('⚠️  VITE_SUPABASE_ANON_KEY is not configured. Please set it in your .env file.');
+if (!SUPABASE_ANON_KEY) {
+  console.error('❌ VITE_SUPABASE_ANON_KEY is not configured. Please check your .env file.');
+} else {
+  console.log('✅ Supabase Anon Key configured');
 }
 
 export const DATABASE_CONFIG = {
