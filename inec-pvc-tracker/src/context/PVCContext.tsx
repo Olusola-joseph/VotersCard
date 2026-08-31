@@ -1,9 +1,9 @@
 /**
  * PVC Distribution Context
- * Manages application state for PVC tracking
+ * Manages application state for PVC tracking with Supabase integration
  */
 
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import type {
   DashboardStats,
   PVCDistributionStatus,
@@ -13,6 +13,11 @@ import type {
 } from '../types';
 import { parseDelimitationCode } from '../utils/delimitationParser';
 import { getAllPollingUnits } from '../data/electoralData';
+import {
+  fetchPVCDistributions,
+  createPVCDistribution
+} from '../services/supabaseServices';
+import { supabase } from '../lib/supabaseClient';
 
 interface PVCContextType {
   // State
@@ -20,11 +25,21 @@ interface PVCContextType {
   distributionRecords: DistributionRecord[];
   filters: FilterOptions;
   
+  // Supabase Integration
+  isConnected: boolean;
+  isLoading: boolean;
+  error: string | null;
+  
   // Actions
   setFilters: (filters: FilterOptions) => void;
   updatePVCDistribution: (puId: string, collected: number) => void;
   addDistributionRecord: (record: Omit<DistributionRecord, 'id'>) => void;
   parseAndLookupCode: (code: string) => DelimitationData | null;
+  
+  // Supabase Actions
+  syncWithSupabase: () => Promise<void>;
+  recordPVCScan: (pvcData: any) => Promise<void>;
+  refreshData: () => Promise<void>;
   
   // Computed
   dashboardStats: DashboardStats;
@@ -87,6 +102,105 @@ export const PVCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [distributionStatuses, setDistributionStatuses] = useState<PVCDistributionStatus[]>(generateInitialStatuses);
   const [distributionRecords, setDistributionRecords] = useState<DistributionRecord[]>(generateInitialRecords);
   const [filters, setFiltersState] = useState<FilterOptions>({});
+  
+  // Supabase connection state
+  const [isConnected, setIsConnected] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Check Supabase connection on mount
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const { error } = await supabase.from('lga_reference').select('count').limit(1);
+        
+        if (error) {
+          if (error.message.includes('YOUR_SUPABASE')) {
+            console.log('ℹ️  Supabase not configured yet. Using local data.');
+            setIsConnected(false);
+          } else {
+            throw error;
+          }
+        } else {
+          setIsConnected(true);
+          // Load data from Supabase if connected
+          await syncWithSupabase();
+        }
+      } catch (err: any) {
+        console.error('Supabase connection error:', err);
+        setError(err.message);
+        setIsConnected(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkConnection();
+  }, []);
+
+  // Sync data from Supabase
+  const syncWithSupabase = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const distributions = await fetchPVCDistributions({ limit: 100 });
+      
+      // Convert Supabase data to local format
+      const newRecords: DistributionRecord[] = distributions.map(dist => ({
+        id: dist.id,
+        delimitationCode: dist.delimitation_full,
+        batchNumber: dist.batch_number || 'N/A',
+        distributedDate: new Date(dist.issued_at),
+        distributedBy: dist.issued_by_name,
+        receivedBy: 'System',
+        quantity: 1,
+        status: dist.status === 'issued' ? 'distributed' : 'pending'
+      }));
+      
+      setDistributionRecords(newRecords);
+      setError(null);
+    } catch (err: any) {
+      console.error('Error syncing with Supabase:', err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Record PVC scan to Supabase
+  const recordPVCScan = useCallback(async (pvcData: any) => {
+    try {
+      await createPVCDistribution({
+        vin: pvcData.vin,
+        full_name: pvcData.full_name,
+        date_of_birth: pvcData.date_of_birth,
+        gender: pvcData.gender,
+        occupation: pvcData.occupation,
+        residential_address: pvcData.residential_address,
+        date_of_registration: pvcData.date_of_registration,
+        batch_number: pvcData.batch_number,
+        serial_number: pvcData.serial_number,
+        delimitation_full: pvcData.delimitation_full,
+        lga_code: pvcData.lga_code,
+        ward_code: pvcData.ward_code,
+        pu_code: pvcData.pu_code,
+        issued_by_name: pvcData.issued_by_name,
+        issued_by: pvcData.issued_by,
+        issued_by_lga_code: pvcData.issued_by_lga_code,
+        scan_method: pvcData.scan_method
+      });
+      
+      // Refresh local data
+      await syncWithSupabase();
+    } catch (err: any) {
+      console.error('Error recording PVC scan:', err);
+      throw err;
+    }
+  }, [syncWithSupabase]);
+
+  // Refresh data from Supabase
+  const refreshData = useCallback(async () => {
+    await syncWithSupabase();
+  }, [syncWithSupabase]);
 
   // Update filters
   const setFilters = useCallback((newFilters: FilterOptions) => {
@@ -219,7 +333,14 @@ export const PVCProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addDistributionRecord,
     parseAndLookupCode,
     dashboardStats,
-    filteredStatuses
+    filteredStatuses,
+    // Supabase integration
+    isConnected,
+    isLoading,
+    error,
+    syncWithSupabase,
+    recordPVCScan,
+    refreshData
   };
 
   return (
