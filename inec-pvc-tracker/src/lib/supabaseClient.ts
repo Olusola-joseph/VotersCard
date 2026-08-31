@@ -231,7 +231,9 @@ export interface Database {
   };
 }
 
-// Create Supabase client
+// Create Supabase client with WebSocket transport for Node.js compatibility
+const websocketTransport = typeof window === 'undefined' ? undefined : undefined;
+
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     autoRefreshToken: true,

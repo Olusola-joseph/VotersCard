@@ -21,3 +21,18 @@ export const DATABASE_CONFIG = {
   appName: 'INEC PVC Tracker',
   version: '1.0.0'
 };
+
+// Export WebSocket for Node.js environments (if needed)
+export const getWebSocketTransport = () => {
+  if (typeof window === 'undefined') {
+    // Node.js environment
+    try {
+      return require('ws');
+    } catch (e) {
+      console.warn('WebSocket not available in Node.js environment');
+      return null;
+    }
+  }
+  // Browser environment - native WebSocket available
+  return undefined;
+};
