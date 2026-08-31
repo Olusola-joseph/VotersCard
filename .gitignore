@@ -1,6 +1,6 @@
 ```
-# Dependencies
-node_modules/
+# Database migrations
+supabase/migrations/*.sql
 
 # Environment variables
 .env
@@ -11,6 +11,7 @@ node_modules/
 dist/
 build/
 target/
+.gradle/
 
 # Python related
 __pycache__/
