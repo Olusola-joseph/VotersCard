@@ -4,14 +4,14 @@ import { useAuthStore } from './store/authStore';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Auth Pages
-import Login from './pages/Auth/Login';
+import Login from './pages/Login';
 
 // Admin Pages
-import Dashboard from './pages/Admin/Dashboard';
-import LGAs from './pages/Admin/LGAs';
+import Dashboard from './pages/Dashboard';
+import LGAs from './pages/AdminDashboard';
 
 // Officer Pages
-import Scan from './pages/Officer/Scan';
+import Scan from './pages/OfficerDashboard';
 
 // Placeholder components for remaining pages
 const Placeholder = ({ title }: { title: string }) => (
