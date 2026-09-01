@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { supabase } from '../lib/supabaseClient';
+import { supabase, type Profile } from '../lib/supabaseClient';
 
 interface User {
   id: string;
@@ -31,7 +31,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (error) throw error;
 
       // Try to fetch profile, but don't fail if it doesn't exist or RLS blocks it
-      let userProfile = null;
+      let userProfile: User | null = null;
       try {
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
@@ -40,12 +40,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           .single();
 
         if (!profileError && profile) {
+          const typedProfile = profile as Profile;
           userProfile = {
-            id: profile.id,
-            email: profile.email,
-            full_name: profile.full_name,
-            role: profile.role as 'officer' | 'admin' | 'super_admin',
-            assigned_lga_code: profile.assigned_lga_code || undefined,
+            id: typedProfile.id,
+            email: typedProfile.email,
+            full_name: typedProfile.full_name,
+            role: typedProfile.role as 'officer' | 'admin' | 'super_admin',
+            assigned_lga_code: typedProfile.assigned_lga_code || undefined,
           };
         }
       } catch (profileErr) {
@@ -93,7 +94,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       // Try to fetch profile, but don't block if it fails
-      let userProfile = null;
+      let userProfile: User | null = null;
       try {
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
@@ -102,12 +103,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           .single();
 
         if (!profileError && profile) {
+          const typedProfile = profile as Profile;
           userProfile = {
-            id: profile.id,
-            email: profile.email,
-            full_name: profile.full_name,
-            role: profile.role as 'officer' | 'admin' | 'super_admin',
-            assigned_lga_code: profile.assigned_lga_code || undefined,
+            id: typedProfile.id,
+            email: typedProfile.email,
+            full_name: typedProfile.full_name,
+            role: typedProfile.role as 'officer' | 'admin' | 'super_admin',
+            assigned_lga_code: typedProfile.assigned_lga_code || undefined,
           };
         }
       } catch (profileErr) {

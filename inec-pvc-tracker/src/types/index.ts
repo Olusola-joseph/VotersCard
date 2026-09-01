@@ -39,6 +39,7 @@ export interface Ward {
   lgaCode: string;
   stateCode: string;
   total_pus?: number;
+  pollingUnitsCount?: number;
   full_delimitation?: string;
 }
 
@@ -53,6 +54,7 @@ export interface PollingUnit {
   registeredVoters?: number;
   pvcCollected?: number;
   pvcPending?: number;
+  address?: string;
 }
 
 // Delimitation Data Interface (Parsed Code)
@@ -96,12 +98,16 @@ export interface PVCDistribution {
 
 // Dashboard Statistics
 export interface DashboardStats {
-  totalLGAs?: number;
-  totalWards?: number;
-  totalPollingUnits?: number;
-  totalPVCCollected?: number;
-  totalPVCPending?: number;
-  overallCollectionPercentage?: number;
+  totalLGAs: number;
+  totalWards: number;
+  totalPollingUnits: number;
+  totalRegisteredVoters: number;
+  totalPVCCollected: number;
+  totalPVCPending: number;
+  overallCollectionPercentage: number;
+  lgasCompleted: number;
+  lgasInProgress: number;
+  lgasPending: number;
   todayIssued?: number;
   totalOfficers?: number;
   dualScans?: number;
@@ -115,4 +121,37 @@ export interface OfficerStats {
   dualScans: number;
   manualEntries: number;
   recentDistributions: PVCDistribution[];
+}
+
+// PVC Distribution Status per Polling Unit
+export interface PVCDistributionStatus {
+  puId: string;
+  totalRegistered: number;
+  pvcCollected: number;
+  pvcPending: number;
+  collectionPercentage: number;
+  lastUpdated: Date;
+  status: 'completed' | 'in-progress' | 'pending' | 'delayed';
+}
+
+// Distribution Record
+export interface DistributionRecord {
+  id: string;
+  delimitationCode: string;
+  batchNumber: string;
+  distributedDate: Date;
+  distributedBy: string;
+  receivedBy: string;
+  quantity: number;
+  status: 'distributed' | 'pending' | 'cancelled';
+  notes?: string;
+}
+
+// Filter Options
+export interface FilterOptions {
+  lgaCode?: string;
+  wardCode?: string;
+  status?: 'completed' | 'in-progress' | 'pending' | 'delayed';
+  dateFrom?: Date;
+  dateTo?: Date;
 }

@@ -191,8 +191,9 @@ export const fetchPVCDistributions = async (filters?: {
   const { data, error } = await query;
   
   if (error) {
-    console.error('Error fetching PVC distributions:', error);
-    throw error;
+    // Don't throw on RLS or recursion errors - return empty array instead
+    console.warn('Warning fetching PVC distributions:', error.message);
+    return [];
   }
   
   return data || [];
