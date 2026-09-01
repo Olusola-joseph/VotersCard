@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabaseClient';
-import type { PVCDistribution, OfficerStats, Profile } from '../../types';
+import type { PVCDistribution, OfficerStats } from '../types';
 import { ClipboardCheck, Calendar, TrendingUp, User, CheckCircle, Clock, MapPin } from 'lucide-react';
 
 const OfficerDashboard: React.FC = () => {
-  const { profile } = useAuthStore();
+  const { user } = useAuthStore();
   const [stats, setStats] = useState<OfficerStats | null>(null);
   const [assignedLGA, setAssignedLGA] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -16,18 +16,18 @@ const OfficerDashboard: React.FC = () => {
 
   const fetchOfficerData = async () => {
     try {
-      if (!profile) return;
+      if (!user) return;
 
       // Get assigned LGA name
-      if (profile.assigned_lga_code) {
+      if (user.assigned_lga_code) {
         const { data: lgaData } = await supabase
           .from('lga_reference')
           .select('lga_name')
-          .eq('lga_code', profile.assigned_lga_code)
+          .eq('lga_code', user.assigned_lga_code)
           .single();
         
-        if (lgaData && 'lga_name' in lgaData) {
-          setAssignedLGA(lgaData.lga_name as string);
+        if (lgaData && typeof lgaData === 'object' && 'lga_name' in lgaData) {
+          setAssignedLGA((lgaData as any).lga_name as string);
         }
       }
 
@@ -35,7 +35,7 @@ const OfficerDashboard: React.FC = () => {
       const { data: distData } = await supabase
         .from('pvc_distributions')
         .select('*')
-        .eq('issued_by', profile.id)
+        .eq('issued_by', user.id)
         .eq('status', 'issued')
         .order('issued_at', { ascending: false });
 
@@ -80,7 +80,7 @@ const OfficerDashboard: React.FC = () => {
       {/* Welcome Header */}
       <div className="mb-8 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
         <h1 className="text-3xl font-bold">
-          Welcome back, {profile?.full_name || 'Officer'}
+          Welcome back, {user?.full_name || 'Officer'}
         </h1>
         <div className="flex items-center gap-2 mt-3">
           <MapPin className="w-5 h-5" />

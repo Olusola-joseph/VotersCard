@@ -22,7 +22,7 @@ const ElectoralBrowser: React.FC = () => {
 
   const getLGAStats = (lgaCode: string) => {
     const wards = getWardsByLGA(lgaCode);
-    const totalPUs = wards.reduce((sum, w) => sum + w.pollingUnitsCount, 0);
+    const totalPUs = wards.reduce((sum, w) => sum + (w.pollingUnitsCount || 0), 0);
     
     // Get statuses for this LGA
     const lgaStatuses = distributionStatuses.filter(s => s.puId.split('/')[1] === lgaCode);

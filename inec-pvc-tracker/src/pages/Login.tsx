@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
+import { useState } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
 import { AlertCircle, Loader2, Mail, Lock, CheckCircle } from 'lucide-react';
 
 export default function Login() {
@@ -10,42 +10,28 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const { login, user } = useAuthStore();
 
-  // Check if user is already logged in
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/dashboard');
-      }
-    };
-    checkSession();
-  }, [navigate]);
+  // Redirect if already logged in
+  if (user) {
+    return <Navigate to="/dashboard" />;
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    const { error: loginError } = await login(email, password);
 
-      if (error) throw error;
-
-      if (data.user) {
-        setSuccess(true);
-        // Small delay to show success message before redirect
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 1000);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to login');
-    } finally {
+    if (loginError) {
+      setError(loginError);
       setLoading(false);
+    } else {
+      setSuccess(true);
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
     }
   };
 
