@@ -2,12 +2,12 @@
 # Dependencies
 node_modules/
 
-# Build outputs
+# Build artifacts
 dist/
 build/
-.next/
-.nuxt/
-out/
+*.js
+*.ts
+*.tsx
 
 # Environment variables
 .env
@@ -31,30 +31,17 @@ coverage/
 htmlcov/
 .coverage
 
-# Python
+# Python cache
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.Python
-env/
-venv/
-.venv/
-pip-log.txt
-pip-selfcheck.json
-*.so
+
+# Package manager
+package-lock.json
+yarn.lock
+
+# OS generated files
 .DS_Store
 Thumbs.db
-
-# Node.js
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-node_modules/
-dist/
-build/
-.nyc_output
-coverage/
-.nyc_output/
-coverage/
 ```
