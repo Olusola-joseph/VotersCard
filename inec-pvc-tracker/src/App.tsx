@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
+import { PVCProvider } from './context/PVCContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Auth Pages
@@ -40,120 +41,122 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Public Routes */}
-        <Route 
-          path="/login" 
-          element={!user ? <Login /> : <Navigate to="/dashboard" />} 
-        />
+      <PVCProvider>
+        <Routes>
+          {/* Public Routes */}
+          <Route 
+            path="/login" 
+            element={!user ? <Login /> : <Navigate to="/dashboard" />} 
+          />
 
-        {/* Protected Routes */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
+          {/* Protected Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Admin Routes */}
-        <Route
-          path="/lgas"
-          element={
-            <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
-              <LGAs />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/wards"
-          element={
-            <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
-              <Placeholder title="Wards" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/pus"
-          element={
-            <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
-              <Placeholder title="Polling Units" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/records"
-          element={
-            <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
-              <Placeholder title="Records" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/analytics"
-          element={
-            <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
-              <Placeholder title="Analytics" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/officers"
-          element={
-            <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
-              <Placeholder title="Officers Management" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
-              <Placeholder title="Settings" />
-            </ProtectedRoute>
-          }
-        />
+          {/* Admin Routes */}
+          <Route
+            path="/lgas"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                <LGAs />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/wards"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                <Placeholder title="Wards" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pus"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                <Placeholder title="Polling Units" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/records"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                <Placeholder title="Records" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                <Placeholder title="Analytics" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/officers"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                <Placeholder title="Officers Management" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'super_admin']}>
+                <Placeholder title="Settings" />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Officer Routes */}
-        <Route
-          path="/scan"
-          element={
-            <ProtectedRoute allowedRoles={['officer']}>
-              <Scan />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/history"
-          element={
-            <ProtectedRoute allowedRoles={['officer']}>
-              <Placeholder title="Distribution History" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/mystats"
-          element={
-            <ProtectedRoute allowedRoles={['officer']}>
-              <Placeholder title="My Statistics" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute allowedRoles={['officer', 'admin', 'super_admin']}>
-              <Placeholder title="Profile" />
-            </ProtectedRoute>
-          }
-        />
+          {/* Officer Routes */}
+          <Route
+            path="/scan"
+            element={
+              <ProtectedRoute allowedRoles={['officer']}>
+                <Scan />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/history"
+            element={
+              <ProtectedRoute allowedRoles={['officer']}>
+                <Placeholder title="Distribution History" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mystats"
+            element={
+              <ProtectedRoute allowedRoles={['officer']}>
+                <Placeholder title="My Statistics" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute allowedRoles={['officer', 'admin', 'super_admin']}>
+                <Placeholder title="Profile" />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Redirects */}
-        <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
-        <Route path="/unauthorized" element={<Placeholder title="Unauthorized Access" />} />
-        <Route path="*" element={<Placeholder title="404 - Page Not Found" />} />
-      </Routes>
+          {/* Redirects */}
+          <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
+          <Route path="/unauthorized" element={<Placeholder title="Unauthorized Access" />} />
+          <Route path="*" element={<Placeholder title="404 - Page Not Found" />} />
+        </Routes>
+      </PVCProvider>
     </BrowserRouter>
   );
 }
