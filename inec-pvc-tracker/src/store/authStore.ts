@@ -1,62 +1,94 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabaseClient';
-import type { User, Session } from '@supabase/supabase-js';
-import type { Profile } from '../types';
+
+interface User {
+  id: string;
+  email: string;
+  full_name: string;
+  role: 'officer' | 'admin' | 'super_admin';
+  assigned_lga_code?: string;
+}
 
 interface AuthState {
   user: User | null;
-  session: Session | null;
-  profile: Profile | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
-  refreshProfile: () => Promise<void>;
+  login: (email: string, password: string) => Promise<{ error: string | null }>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  session: null,
-  profile: null,
   loading: true,
 
-  signIn: async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  login: async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      return { error };
+      if (error) throw error;
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      const user: User = {
+        id: profile.id,
+        email: profile.email,
+        full_name: profile.full_name,
+        role: profile.role as 'officer' | 'admin' | 'super_admin',
+        assigned_lga_code: profile.assigned_lga_code || undefined,
+      };
+
+      set({ user, loading: false });
+      return { error: null };
+    } catch (error: any) {
+      console.error('Login error:', error);
+      return { error: error.message || 'Invalid login credentials' };
     }
-
-    set({ user: data.user, session: data.session });
-    await get().refreshProfile();
-    return { error: null };
   },
 
-  signOut: async () => {
+  logout: async () => {
     await supabase.auth.signOut();
-    set({ user: null, session: null, profile: null });
+    set({ user: null, loading: false });
   },
 
-  refreshProfile: async () => {
-    const { user } = get();
-    if (!user) {
-      set({ profile: null });
-      return;
-    }
+  checkAuth: async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        set({ user: null, loading: false });
+        return;
+      }
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
 
-    if (error || !data) {
-      console.error('Error fetching profile:', error);
-      set({ profile: null });
-    } else {
-      set({ profile: data });
+      if (profile) {
+        const user: User = {
+          id: profile.id,
+          email: profile.email,
+          full_name: profile.full_name,
+          role: profile.role as 'officer' | 'admin' | 'super_admin',
+          assigned_lga_code: profile.assigned_lga_code || undefined,
+        };
+        set({ user, loading: false });
+      } else {
+        set({ user: null, loading: false });
+      }
+    } catch (error) {
+      console.error('Auth check error:', error);
+      set({ user: null, loading: false });
     }
   },
 }));
