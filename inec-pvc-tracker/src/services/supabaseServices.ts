@@ -3,7 +3,8 @@
  * CRUD operations and real-time data synchronization
  */
 
-import { supabase, type PVCDistribution, type LGAReference, type WardReference, type PUReference, type Profile } from '../lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
+import type { PVCDistribution, LGAReference, WardReference, PUReference, Profile } from '../lib/supabaseClient';
 
 // ==================== LGA Services ====================
 
@@ -219,21 +220,19 @@ export const updatePVCDistribution = async (
   id: string,
   updates: Partial<PVCDistribution>
 ): Promise<PVCDistribution> => {
-  const updatesData = { ...updates } as any;
-  
   const { data, error } = await supabase
     .from('pvc_distributions')
-    .update(updatesData as any)
+    .update(updates as any)
     .eq('id', id)
     .select()
-    .single();
+    .single() as { data: PVCDistribution | null; error: any };
   
   if (error) {
     console.error('Error updating PVC distribution:', error);
     throw error;
   }
   
-  return data as PVCDistribution;
+  return data!;
 };
 
 export const cancelPVCDistribution = async (id: string): Promise<PVCDistribution> => {
@@ -336,14 +335,14 @@ export const updateUserProfile = async (
     .update(updates as any)
     .eq('id', userId)
     .select()
-    .single();
+    .single() as { data: Profile | null; error: any };
   
   if (error) {
     console.error('Error updating user profile:', error);
     throw error;
   }
   
-  return data as Profile;
+  return data!;
 };
 
 // ==================== Real-time Subscription Helpers ====================

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabaseClient';
-import type { PVCDistribution, DashboardStats, LGA } from '../../types';
+import type { PVCDistribution, DashboardStats, LGA } from '../types';
 import { BarChart3, Users, MapPin, TrendingUp, Calendar, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
-  const { profile } = useAuthStore();
+  const { user } = useAuthStore();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [lgas, setLgas] = useState<LGA[]>([]);
   const [recentDistributions, setRecentDistributions] = useState<PVCDistribution[]>([]);
@@ -61,7 +61,15 @@ const AdminDashboard: React.FC = () => {
 
       setStats({
         totalLGAs: lgaData?.length || 0,
+        totalWards: 0,
+        totalPollingUnits: 0,
+        totalRegisteredVoters: 0,
         totalPVCCollected: totalCount || 0,
+        totalPVCPending: 0,
+        overallCollectionPercentage: 0,
+        lgasCompleted: 0,
+        lgasInProgress: 0,
+        lgasPending: 0,
         todayIssued: todayCount || 0,
         totalOfficers: officerCount || 0,
       });
@@ -85,7 +93,7 @@ const AdminDashboard: React.FC = () => {
       {/* Welcome Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">
-          Welcome back, {profile?.full_name || 'Admin'}
+          Welcome back, {user?.full_name || 'Admin'}
         </h1>
         <p className="text-gray-600 mt-2">
           State-wide PVC Distribution Overview - All 20 LGAs

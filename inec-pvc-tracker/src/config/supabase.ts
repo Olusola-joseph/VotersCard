@@ -46,7 +46,7 @@ export const getWebSocketTransport = () => {
   if (typeof window === 'undefined') {
     // Node.js environment
     try {
-      return require('ws');
+      return (globalThis as any).WebSocket || null;
     } catch (e) {
       console.warn('WebSocket not available in Node.js environment');
       return null;

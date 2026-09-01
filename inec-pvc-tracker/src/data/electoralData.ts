@@ -132,5 +132,5 @@ export const getPollingUnitByCode = (
 export const getAllPollingUnits = (): PollingUnit[] => POLLING_UNITS;
 
 export const getTotalPollingUnitsCount = (): number => {
-  return WARDS.reduce((total, ward) => total + ward.pollingUnitsCount, 0);
+  return WARDS.reduce((total, ward) => total + (ward.pollingUnitsCount || 0), 0);
 };
